@@ -1,55 +1,58 @@
 <?php
+declare(strict_types=1);
+
 namespace Dompdf\View\Helper;
 
 use Cake\View\Helper;
-use Cake\View\View;
 
 /**
  * Dompdf helper
  */
 class DompdfHelper extends Helper
 {
-	public $helpers = ['Html'];
-    protected $_defaultConfig = [];
+    protected array $helpers = ['Html'];
+    protected array $_defaultConfig = [];
 
     /**
-     * Creates a link element for CSS stylesheets
-     * @param  string $path : The name of a CSS style sheet
-     * @param  bool $plugin : (true) add a plugin css file || (false) add a file in webroot/css /// default : false
-     * @return string <link>
+     * Creates a link element for CSS stylesheets.
+     *
+     * @param string $path The name of a CSS style sheet without extension.
+     * @param bool $plugin True to read CSS from plugin assets, false for app assets.
      */
-    public function css($path, $plugin = false) {
-        $path = ($plugin) ? "dompdf/css/{$path}" : "css/{$path}";
-    	return "<link rel=\"stylesheet\" href=\"{$path}.css\">";
+    public function css(string $path, bool $plugin = false): string
+    {
+        $path = $plugin ? "dompdf/css/{$path}" : "css/{$path}";
+
+        return "<link rel=\"stylesheet\" href=\"{$path}.css\">";
     }
 
     /**
-     * Générate an image
-     * @param  string $path : Path to the image file, relative to the app/webroot/img/ directory
-     * @param  array  $options : Array of HTML attributes
-     * @return string <img>
+     * Generate an image tag.
+     *
+     * @param string $path Path to the image file relative to webroot/img.
+     * @param array $options Array of HTML attributes.
      */
-    public function image($path, $options = []) {
+    public function image(string $path, array $options = []): string
+    {
+        $options['src'] = "img/{$path}";
+        $options['alt'] = $options['alt'] ?? '';
 
-    	$options['src'] = "img/{$path}";
-    	$options['alt'] = (isset($options['alt'])) ? $options['alt'] : '';
-
-    	return $this->Html->tag('img', null, $options);
+        return $this->Html->tag('img', null, $options);
     }
 
     /**
-     * Generate a page break
-     * @return string <div>
+     * Generate a page break.
      */
-    public function page_break() {
+    public function page_break(): string
+    {
         return $this->Html->tag('div', null, ['class' => 'page_break']);
     }
 
     /**
-     * Write page number (use in header or footer)
-     * @return string <span>
+     * Write page number (use in header or footer).
      */
-    public function page_number() {
+    public function page_number(): string
+    {
         return $this->Html->tag('span', null, ['class' => 'page_number']);
     }
 }

@@ -1,88 +1,104 @@
 <?php
+declare(strict_types=1);
+
 namespace Dompdf\View;
 
 use Cake\View\View;
+use Cake\View\ViewBuilder;
 use Dompdf\Dompdf;
-use Dompdf\FontMetrics;
-use Cake\Event\EventManager;
-use Cake\Network\Request;
-use Cake\Network\Response;
+use RuntimeException;
 
-class PdfView extends View {
-
-	private $config = [
-		'dpi'				=> 192,
-		'isRemoteEnabled'	=> true,
-		'size'				=> 'A4',
-		'orientation'		=> 'portrait',
-		'render'			=> 'download',
-		'filename' 			=> 'document',
-        'paginate'          => false,
-	];
-
-    private $pdf;
-
-    private $_pagination = [
-        'x'     => 0,
-        'y'     => 0,
-        'font'  => null,
-        'size'  => 12,
-        'text'  => "{PAGE_NUM} / {PAGE_COUNT}",
-        'color' => [0,0,0],
+class PdfView extends View
+{
+    /**
+     * Default Dompdf configuration.
+     */
+    protected array $dompdfConfig = [
+        'dpi' => 192,
+        'isRemoteEnabled' => true,
+        'size' => 'A4',
+        'orientation' => 'portrait',
+        'render' => 'download',
+        'filename' => 'document',
+        'paginate' => false,
     ];
 
-    public function initialize() {
+    protected ?Dompdf $pdf = null;
+
+    protected array $paginationDefaults = [
+        'x' => 0,
+        'y' => 0,
+        'font' => null,
+        'size' => 12,
+        'text' => '{PAGE_NUM} / {PAGE_COUNT}',
+        'color' => [0, 0, 0],
+    ];
+
+    public function __construct(ViewBuilder $builder)
+    {
+        parent::__construct($builder);
+
+        $config = (array)$builder->getOption('config');
+        if ($config) {
+            $this->dompdfConfig = array_merge($this->dompdfConfig, $config);
+        }
+    }
+
+    public function initialize(): void
+    {
         parent::initialize();
         $this->loadHelper('Dompdf.Dompdf');
     }
 
-	public function __construct(Request $request = null, Response $response = null, EventManager $eventManager = null, array $viewOptions = []) {
-		parent::__construct($request, $response, $eventManager, $viewOptions);
-
-		if ( isset($viewOptions['config']) )
-			$this->config = array_merge($this->config, $viewOptions['config']);
-    }
-
-	public function render($view = null, $layout = null) {
-
-		$this->pdf = new Dompdf($this->config);
-		$this->pdf->setPaper($this->config['size'], $this->config['orientation']);
+    public function render(?string $template = null, ?string $layout = null): string
+    {
+        $this->pdf = new Dompdf($this->dompdfConfig);
+        $this->pdf->setPaper($this->dompdfConfig['size'], $this->dompdfConfig['orientation']);
 
         $pdf = $this->pdf;
-
         $this->set(compact('pdf'));
 
-		$this->pdf->loadHtml(parent::render($view, $layout));
+        $this->pdf->loadHtml(parent::render($template, $layout));
+        $this->pdf->render();
 
-		$this->pdf->render();
-
-        if ( is_array($this->config['paginate']) ) {
+        if (is_array($this->dompdfConfig['paginate'])) {
             $this->paginate();
         }
 
-		switch ($this->config['render']) {
-            case 'browser':
-            case 'stream':
-                return $this->pdf->output();
-
-			case 'upload':
-                $output = $this->pdf->output();
-                if ( ! file_put_contents($this->config['upload_filename'], $output) )
-                    return false;
-
-                return $output;
-
-			default: return $this->pdf->stream($this->config['filename']);
-		}
-	}
-
+        return match ($this->dompdfConfig['render']) {
+            'browser', 'stream' => $this->pdf->output(),
+            'upload' => $this->saveUpload(),
+            default => $this->pdf->stream($this->dompdfConfig['filename']),
+        };
+    }
 
     /**
-     * Write pagination on the pdf
+     * Write pagination on the pdf.
      */
-    private function paginate() {
-        $canvas = $this->pdf->get_canvas();
-        $c = array_merge($this->_pagination, $this->config['paginate']);
-        $canvas->page_text($c['x'], $c['y'], $c['text'], $c['font'], $c['size'], $c['color']);
+    private function paginate(): void
+    {
+        $canvas = $this->pdf?->get_canvas();
+        if ($canvas === null) {
+            return;
+        }
+
+        $config = array_merge($this->paginationDefaults, $this->dompdfConfig['paginate']);
+        $canvas->page_text($config['x'], $config['y'], $config['text'], $config['font'], $config['size'], $config['color']);
+    }
+
+    private function saveUpload(): string
+    {
+        $output = $this->pdf?->output() ?? '';
+        $target = $this->dompdfConfig['upload_filename'] ?? null;
+
+        if (!$target) {
+            throw new RuntimeException('Missing "upload_filename" in dompdf config.');
+        }
+
+        if (file_put_contents($target, $output) === false) {
+            throw new RuntimeException(sprintf('Unable to write PDF to "%s".', $target));
+        }
+
+        return $output;
     }
 }

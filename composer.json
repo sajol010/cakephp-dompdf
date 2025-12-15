@@ -1,31 +1,36 @@
 {
-    "name": "daoandco/cakephp-dompdf",
-    "description": "Dompdf plugin for CakePHP",
+    "name": "sajol010/cakephp-dompdf",
+    "description": "Dompdf plugin for CakePHP 5/6 maintained by sajol010",
     "type": "cakephp-plugin",
     "keywords": [
         "cakephp",
+        "cakephp5",
+        "cakephp6",
         "pdf",
         "dompdf",
         "html",
         "css"
     ],
-    "homepage": "https://github.com/DaoAndCo/cakephp-dompdf",
+    "homepage": "https://github.com/sajol010/cakephp-dompdf",
     "license": "MIT",
     "authors": [
         {
-            "name": "Flavien Beninca",
-            "email": "contact@flavienbeninca.fr",
-            "homepage": "http://www.flavienbeninca.fr",
+            "name": "Sajol010",
+            "homepage": "https://github.com/sajol010",
             "role": "Maintainer"
+        },
+        {
+            "name": "Flavien Beninca",
+            "role": "Original author"
         }
     ],
     "require": {
-        "php": ">=5.4.16",
-        "cakephp/cakephp": "~3.0",
-        "dompdf/dompdf": "0.8.*"
+        "php": "^8.1",
+        "cakephp/cakephp": "^5.0 || ^6.0",
+        "dompdf/dompdf": "^2.0"
     },
     "require-dev": {
-        "phpunit/phpunit": "*"
+        "phpunit/phpunit": "^10.5"
     },
     "autoload": {
         "psr-4": {
@@ -34,13 +39,11 @@
     },
     "autoload-dev": {
         "psr-4": {
-            "Dompdf\\Test\\": "tests",
-            "Cake\\Test\\": "./vendor/cakephp/cakephp/tests"
+            "Dompdf\\Test\\": "tests"
         }
     },
     "support": {
-        "email": "contact+dompdf@flavienbeninca.fr",
-        "issues": "https://github.com/DaoAndCo/cakephp-dompdf/issues",
-        "source": "https://github.com/DaoAndCo/cakephp-dompdf"
+        "issues": "https://github.com/sajol010/cakephp-dompdf/issues",
+        "source": "https://github.com/sajol010/cakephp-dompdf"
     }
 }
