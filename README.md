@@ -5,7 +5,7 @@ Modernised Dompdf integration for CakePHP, maintained by **sajol010**.
 ## Requirements
 - PHP 8.1 or higher
 - CakePHP 5.x (forward compatible with 6.x)
-- dompdf 2.x
+- dompdf 3.x
 
 ## Installation
 

@@ -6,6 +6,7 @@ namespace Dompdf\View;
 use Cake\View\View;
 use Cake\View\ViewBuilder;
 use Dompdf\Dompdf;
+use Dompdf\Options;
 use RuntimeException;
 
 class PdfView extends View
@@ -52,7 +53,7 @@ class PdfView extends View
 
     public function render(?string $template = null, ?string $layout = null): string
     {
-        $this->pdf = new Dompdf($this->dompdfConfig);
+        $this->pdf = $this->buildRenderer();
         $this->pdf->setPaper($this->dompdfConfig['size'], $this->dompdfConfig['orientation']);
 
         $pdf = $this->pdf;
@@ -100,5 +101,36 @@ class PdfView extends View
         }
 
         return $output;
+    }
+
+    /**
+     * Build a Dompdf instance with vetted options (compatible with Dompdf 3.x).
+     */
+    private function buildRenderer(): Dompdf
+    {
+        $options = new Options();
+        $optionKeys = [
+            'dpi',
+            'isRemoteEnabled',
+            'isHtml5ParserEnabled',
+            'isPhpEnabled',
+            'isJavascriptEnabled',
+            'isFontSubsettingEnabled',
+            'defaultFont',
+            'defaultMediaType',
+            'tempDir',
+            'fontDir',
+            'fontCache',
+            'chroot',
+            'logOutputFile',
+        ];
+
+        foreach ($optionKeys as $key) {
+            if (array_key_exists($key, $this->dompdfConfig)) {
+                $options->set($key, $this->dompdfConfig[$key]);
+            }
+        }
+
+        return new Dompdf($options);
     }
 }
